@@ -6,15 +6,19 @@ Dictate is a tool for generating wordlists for dictionary attacks based on infor
 - goes through the resulting list adding versions with letters replaced with numbers  
 - generates all possible two- and three-part permutations on that list  
 - optionally, adds numbers on the end  
-###### syntax:
+
+---
+
+##### syntax:
 ```
 dictate [-h] [-q | -v] [-l] [-o filename] [-e] [ [-d date1,date2...daten] [-n name1,name2...namen] [-w word1,word2...wordn] | [-f filename] ]
 ```
 ---
 ###### example usage:  
-    for john smith, an accountant:  
-        `dictate -o john.txt -e -n john_smith,jane_smith -w money,rich,win`  
-        note that the repetition of 'smith' doesn't matter because duplicates are removed  
+for john smith, an accountant:  
+`dictate -o john.txt -e -n john_smith,jane_smith -w money,rich,win`  
+note that the repetition of 'smith' doesn't matter because duplicates are removed  
+
 ---
 ###### installation:
 Dictate uses only the c++ standard libraries, so there shouldn't be dependency issues.  
