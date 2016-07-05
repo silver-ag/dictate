@@ -2,7 +2,10 @@
 
 Dictate is a tool for generating wordlists for dictionary attacks based on information about a specific target individual.
 
-syntax: dictate [-h] [-q | -v] [-l] [-o filename] [-e] [ [-d date1,date2...daten] [-n name1,name2...namen] [-w word1,word2...wordn] | [-f filename] ]
+syntax:
+```
+dictate [-h] [-q | -v] [-l] [-o filename] [-e] [ [-d date1,date2...daten] [-n name1,name2...namen] [-w word1,word2...wordn] | [-f filename] ]
+```
 
 options:
     -h : you're already here!
@@ -20,5 +23,5 @@ options:
     -w : supply a comma seperated list of words relevant to the target
 examples:
     for john smith, an accountant:
-        dictate -o john.txt -e -n john_smith,jane_smith -w money,rich,win
+        `dictate -o john.txt -e -n john_smith,jane_smith -w money,rich,win`
         note that the repetition of 'smith' doesn't matter because duplicates are removed
