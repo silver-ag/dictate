@@ -8,6 +8,8 @@
 //                                                      //
 //////////////////////////////////////////////////////////
 
+#define VER "1"
+
 #include <algorithm>
 #include <iostream>
 #include <string.h>
@@ -28,10 +30,11 @@ char* ofname = "dictionary.txt"; // name of output file
 ofstream fout; // output stream
 char vmode = 'n'; // verbosity mode. n = not set, v = verbose, q = quiet.
 bool l33t = false;
+int startlen = 5, endlen = 14;
 
 int main(int argc, char* argv[]) {
   if (argc == 1) {
-    cout << "usage: " << argv[0] << " [-h] [-q | -v] [-l] [-o filename] [-d date1,date2] [-n name1,name2] [-w word1,word2]\n" << argv[0] << " -h for further information\n";
+    cout << "usage: " << argv[0] << " [-h] [-V] [-q | -v] [-l] [-c a,b] [-o filename] [-d date1,date2] [-n name1,name2] [-w word1,word2]\n" << argv[0] << " -h for further information\n";
     return -1;
   }
 
@@ -54,32 +57,34 @@ int main(int argc, char* argv[]) {
   for (int i = 1; i < argc; i++) {
     if (sargv.at(i) == "-h") {
       help(argv);
-    }
-    if (sargv.at(i) == "-d") {
+    } else if (sargv.at(i) == "-d") {
       dates = tovect(sargv.at(++i));
-    }
-    if (sargv.at(i) == "-n") {
+    } else if (sargv.at(i) == "-n") {
       names = tovect(sargv.at(++i));
-    }
-    if (sargv.at(i) == "-w") {
+    } else if (sargv.at(i) == "-w") {
       words = tovect(sargv.at(++i));
-    }
-    if (sargv.at(i) == "-o") {
+    } else if (sargv.at(i) == "-o") {
       ofname = strdup(sargv.at(++i).c_str());
-    }
-    if (sargv.at(i) == "-v") {
+    } else if (sargv.at(i) == "-v") {
       if (vmode != 'q') {
         vmode = 'v';
       }
-    }
-    if (sargv.at(i) == "-q") {
+    } else if (sargv.at(i) == "-q") {
       vmode = 'q';
-    }
-    if (sargv.at(i) == "-l") {
+    } else if (sargv.at(i) == "-l") {
       l33t = true;
-    }
-    if (sargv.at(i) == "-e") {
+    } else if (sargv.at(i) == "-e") {
       endnos = true;
+    } else if (sargv.at(i) == "-V") {
+      cout << "Dictate version " << VER << "\n";
+      exit(0);
+    } else if (sargv.at(i) == "-c") {
+      istringstream issa(tovect(sargv.at(++i)).at(0));
+      int a;
+      issa >> startlen;
+      istringstream issb(tovect(sargv.at(i)).at(1));
+      int b;
+      issb >> endlen;
     }
   }
   // </options>
@@ -87,15 +92,15 @@ int main(int argc, char* argv[]) {
 
   // <extra info>
   if (vmode == 'v') {
-    cout << "\nwords:";
+    cout << "\nwords: ";
     for (int i = 0; i < words.size(); i++) {
       cout << words.at(i) << " ";
     }
-    cout << "\ndates:";
+    cout << "\ndates: ";
     for (int i = 0; i < dates.size(); i++) {
       cout << dates.at(i) << " ";
     }
-    cout << "\nnames:";
+    cout << "\nnames: ";
     for (int i = 0; i < names.size(); i++) {
       cout << names.at(i) << " ";
     }
@@ -111,17 +116,20 @@ int main(int argc, char* argv[]) {
 int help(char* argv[]) {
   cout << "Dictate is a tool for generating wordlists for dictionary attacks based on information\n";
   cout << "about a specific target individual.\n";
-  cout << "syntax: " << argv[0] << " [-h] [-q | -v] [-l] [-o filename] [-e] [ [-d date1,date2...daten]\n";
-  cout << "[-n name1,name2...namen] [-w word1,word2...wordn] | [-f filename] ]\n\n";
+  cout << "syntax: " << argv[0] << " [-h] [-V] [-q | -v] [-l] [-c a,b] [-o filename] [-e] [-d date1,date2...daten]\n";
+  cout << "[-n name1,name2...namen] [-w word1,word2...wordn]\n\n";
   cout << "options:\n";
   cout << "    -h : you're already here!\n";
-  cout << "    -o : specify an output filename (default dictionary.txt)\n";
+  cout << "    -V : output the program version\n";
   cout << "    -q : quiet. suppress nonerror output. overrides -d\n";
   cout << "    -v : verbose. give more informative output\n";
   cout << "    -l : 13375P34|< mode. By default dictate adds versions of words with o and i swapped\n";
   cout << "         for 0 and 1. If you know your target suffers from a propensity to use more\n";
   cout << "         elaborate substitutions, this switch adds them\n";
+  cout << "    -c : constrain the permutations to words between integer length a and b. by default it's\n";
+  cout << "         between 5 and 14. anything much broader than that and it starts to get really slow.\n";
   cout << "    -e : add numbers on the end of generated passwords\n";
+  cout << "    -o : specify an output filename (default dictionary.txt)\n";
   cout << "    -d : supply a comma seperated list of dates relevant to the target, without spaces,\n";
   cout << "         in the form ddmmyyyy or mmddyyyy (however the target would write it)\n";
   cout << "    -n : supply a comma seperated list of names relevant to the target, including theirs,\n";
@@ -210,7 +218,7 @@ int go(vector<string> words, vector<string> dates, vector<string> names) {
       datesT.resize(datesT.size() + 1);
       datesT.at(datesT.size() - 1) = dates.at(i).substr(0,2);
     }
-    for (int i = 0; i < dates.size(); i++) { // just the month/day (depending on how the date's written)
+    for (int i = 0; i < dates.size() - 1; i++) { // just the month/day (depending on how the date's written)
       datesT.resize(datesT.size() + 1);
       datesT.at(datesT.size() - 1) = dates.at(i).substr(2,2);
     }
@@ -391,7 +399,7 @@ int permute(vector<string> allT) {
 }
 
 vector<string> ifnotadd(string str, vector<string> perms) {
-  if (find(perms.begin(), perms.end(), str) == perms.end()) {
+  if (find(perms.begin(), perms.end(), str) == perms.end() && str.length() >= startlen && str.length() <= endlen) {
     perms.resize(perms.size() + 1);
     perms.at(perms.size() - 1) = str;
   }
