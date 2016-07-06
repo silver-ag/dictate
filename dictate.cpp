@@ -8,7 +8,7 @@
 //                                                      //
 //////////////////////////////////////////////////////////
 
-#define VER "1"
+#define VER "1.1"
 
 #include <algorithm>
 #include <iostream>
