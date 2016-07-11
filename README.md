@@ -11,7 +11,7 @@ Dictate is a tool for generating wordlists for dictionary attacks based on infor
 
 ##### syntax:
 ```
-dictate [-h] [-q | -v] [-l] [-o filename] [-e] [ [-d date1,date2...daten] [-n name1,name2...namen] [-w word1,word2...wordn] | [-f filename] ]
+dictate [-h] [-q | -v] [-l] [-t] [-o filename] [-e] [-d date1,date2...daten] [-n name1,name2...namen] [-w word1,word2...wordn] [-f filename]
 ```
 ---
 ###### example usage:  
