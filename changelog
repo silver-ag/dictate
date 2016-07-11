@@ -1,0 +1,8 @@
+05/06/16 - version 1.0 :
+  help, verbose, quiet, end numbers, 13375P34|<, output, words, names and dates features implemented to begin with.
+06/06/16 - version 1.1 :
+  version and constrain features added.
+  constrain feature allows significant speed inprovements.
+  bug fixed in names and dates that caused two-member lists to fail.
+11/06/16 - version 1.2 :
+  -f file and -t transforms options added.

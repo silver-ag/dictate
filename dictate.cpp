@@ -8,7 +8,7 @@
 //                                                      //
 //////////////////////////////////////////////////////////
 
-#define VER "1.1"
+#define VER "1.2"
 
 #include <algorithm>
 #include <iostream>
@@ -26,15 +26,15 @@ vector<string> tovect(string str), extras(vector<string> allT), ifnotadd(string 
 string l33tize(string str);
 bool l33table (string str), endnos = false;
 // </initialise>
-char* ofname = "dictionary.txt"; // name of output file
+char* ofname = "dictionary.txt", *file = "-"; // name of output file
 ofstream fout; // output stream
 char vmode = 'n'; // verbosity mode. n = not set, v = verbose, q = quiet.
-bool l33t = false;
+bool l33t = false, tflag = false;
 int startlen = 5, endlen = 14;
 
 int main(int argc, char* argv[]) {
   if (argc == 1) {
-    cout << "usage: " << argv[0] << " [-h] [-V] [-q | -v] [-l] [-c a,b] [-o filename] [-d date1,date2] [-n name1,name2] [-w word1,word2]\n" << argv[0] << " -h for further information\n";
+    cout << "usage: " << argv[0] << " [-h] [-V] [-q | -v] [-l] [-t] [-c a,b] [-o filename] [f filename] [-d date1,date2] [-n name1,name2] [-w word1,word2]\n" << argv[0] << " -h for further information\n";
     return -1;
   }
 
@@ -85,8 +85,29 @@ int main(int argc, char* argv[]) {
       istringstream issb(tovect(sargv.at(i)).at(1));
       int b;
       issb >> endlen;
+    } else if (sargv.at(i) == "-f") {
+      file = strdup(sargv.at(++i).c_str());
+    } else if (sargv.at(i) == "-t") {
+      tflag = true;
     }
   }
+
+  if (strcmp(file,"-") != 0) {
+    if (vmode == 'v') {
+      cout << "reading file " << file << "...\n";
+    }
+    ifstream f(file);
+    if (f.bad()) {
+      cout << "ERROR: could not open file " << file << " for reading!"; // TODO: implement notify() and error() with [+] and [!] and colours
+    }
+    string line;
+    while(f >> line) {
+      cout << line << "\n";//test
+      words.resize(words.size() + 1);
+      words.at(words.size() - 1) = line;
+    }
+  }
+
   // </options>
   fout.open(ofname); // now we know what the output filename will be, no point hanging around
 
@@ -135,18 +156,16 @@ int help(char* argv[]) {
   cout << "    -n : supply a comma seperated list of names relevant to the target, including theirs,\n";
   cout << "         without spaces, in the form firstname_lastname\n";
   cout << "    -w : supply a comma seperated list of words relevant to the target\n";
-//  cout << "    -f : instead of -d, -n and -w, supply the path to a file containing the information.\n";
-//  cout << "         they should be listed one word to a line, with headers \"[words]\",\"[names]\",\n";
-//  cout << "         and \"[dates]\". not yet implemented.\n";
-//  cout << "    -t : only do transforms, not permutations. this is primarily useful in combination with\n";
-//  cout << "         -f to work with the contents of an existing wordlist. not yet implemented.\n\n";
+  cout << "    -f : supply the path to a file containing a list of words to be treated like -w.\n";
+  cout << "         they should be listed one word to a line. compatible with -w.\n";
+  cout << "    -t : only do transforms, not permutations. this is primarily useful in combination with\n";
+  cout << "         -f to work with the contents of an existing wordlist\n\n";
   cout << "examples:\n";
   cout << "    for john smith, an accountant:\n";
   cout << "        " << argv[0] << " -o john.txt -e -n john_smith,jane_smith -w money,rich,win\n";
   cout << "        note that the repetition of 'smith' doesn't matter because duplicates are removed\n";
-//  cout << "    modify the rockyou wordlist, suppressing nonerror output:\n";
-//  cout << "        " << argv[0] << " -o newrockyou.txt -t -w rockyou.txt -q\n";
-//  cout << "        you'd first have to insert '[words]' at the top of rockyou.txt\n\n";
+  cout << "    modify the rockyou wordlist, suppressing nonerror output:\n";
+  cout << "        " << argv[0] << " -o newrockyou.txt -t -f rockyou.txt -q\n";
   exit(0);
   return 0;
 }
@@ -333,7 +352,9 @@ int go(vector<string> words, vector<string> dates, vector<string> names) {
   //    </remove duplicates>
   // </add to allT>
   write(allT); // add these to the wordlist file
-  permute(allT); // generate combinations
+  if (!tflag) {
+    permute(allT); // generate combinations
+  }
   return 0;
 }
 
