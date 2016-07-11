@@ -1,4 +1,4 @@
-# dictate
+#  dictate
 
 Dictate is a tool for generating wordlists for dictionary attacks based on information about a specific target individual - somewhat like CUPP.  
 - takes **words**, **names** and **dates** associated with the target  
