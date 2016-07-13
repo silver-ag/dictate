@@ -1,4 +1,4 @@
-///////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
 //                                                      //
 //  Dictate - a utility for generating password lists   //
 //            from information about a target person.   //
@@ -8,7 +8,7 @@
 //                                                      //
 //////////////////////////////////////////////////////////
 
-#define VER "1.2"
+#define VER "1.3"
 
 #include <algorithm>
 #include <iostream>
@@ -17,12 +17,13 @@
 #include <fstream>
 #include <locale>
 #include <vector>
+#include <thread>
 
 using namespace std;
 
 // <initialise functions>
-int help(char* argv[]), go(vector<string> words, vector<string> dates, vector<string> names), write(vector<string> info), add(vector<string> info), permute(vector<string> allT);
-vector<string> tovect(string str), extras(vector<string> allT), ifnotadd(string str, vector<string> perms);
+int help(char* argv[]), go(vector<string> words, vector<string> dates, vector<string> names), write(vector<string> info), add(vector<string> info), permute(vector<string> allT), thrperm(vector<string> someT, int id);
+vector<string> tovect(string str), ifnotadd(string str, vector<string> perms);
 string l33tize(string str);
 bool l33table (string str), endnos = false;
 // </initialise>
@@ -37,15 +38,6 @@ int main(int argc, char* argv[]) {
     cout << "usage: " << argv[0] << " [-h] [-V] [-q | -v] [-l] [-t] [-c a,b] [-o filename] [f filename] [-d date1,date2] [-n name1,name2] [-w word1,word2]\n" << argv[0] << " -h for further information\n";
     return -1;
   }
-
-  // <banner>
-  if (vmode != 'q') {
-    cout << "                 \\\\===========\/\/\n";
-    cout << "__________________\\\\ DICTATE \/\/_________________\n";
-    cout << "\\\\ generate personalised password dictionaries \/\/\n";
-    cout << " \\\\===========================================\/\/\n\n";
-  }
-  // </banner>
 
   vector<string> sargv, words, dates, names;
 
@@ -91,6 +83,16 @@ int main(int argc, char* argv[]) {
       tflag = true;
     }
   }
+
+  // <banner>
+  if (vmode != 'q') {
+    cout << "                 \\\\===========\/\/\n";
+    cout << "__________________\\\\ DICTATE \/\/_________________\n";
+    cout << "\\\\ generate personalised password dictionaries \/\/\n";
+    cout << " \\\\===========================================\/\/\n\n";
+  }
+  // </banner>
+
 
   if (strcmp(file,"-") != 0) {
     if (vmode == 'v') {
@@ -367,33 +369,17 @@ int permute(vector<string> allT) {
     }
     cout << "...\n";
   }
-  // <find all two and three part permutations of the transforms (this works because one of the values in allT is always "")>
-  int ib = 0, jb = 0, kb = 0;
-  for (int i = 0; i < allT.size(); i++) {
-    for (int j = 0; j < allT.size(); j++) {
-      for (int k = 0; k < allT.size(); k++) {
-          perms = ifnotadd(allT.at(i) + allT.at(j) + allT.at(k), perms);
-          perms = ifnotadd(allT.at(i) + allT.at(k) + allT.at(j), perms);
-          perms = ifnotadd(allT.at(j) + allT.at(i) + allT.at(k), perms);
-          perms = ifnotadd(allT.at(j) + allT.at(k) + allT.at(i), perms);
-          perms = ifnotadd(allT.at(k) + allT.at(i) + allT.at(j), perms);
-          perms = ifnotadd(allT.at(k) + allT.at(j) + allT.at(i), perms);
-      }
-    }
-    if (vmode == 'v') {
-      cout << "[" << ((i+1)*100)/allT.size() << "%]\n";
-    }
-    if (i == allT.size()/2) {
-      if (vmode == 'n') {
-        cout << "halfway there...\n"; // so they know something's happening if it's slow
-      }
-    }
-  }
-  // </permutations>
+  // <generate permutations in threads>
+  thread thr1(thrperm, allT, 1);
+  thread thr2(thrperm, allT, 2);
+  thread thr3(thrperm, allT, 3);
+  thr1.join();
+  thr2.join();
+  thr3.join();
   // <add numbers on the end>
   if (endnos) {
     if (vmode == 'v') {
-      cout << "adding number on the end...\n";
+      cout << "adding numbers on the end...\n";
     }
     int unnummedperms = perms.size();
     for (int i = 0; i < 102; i++) {
@@ -412,12 +398,62 @@ int permute(vector<string> allT) {
   if (vmode == 'v') {
     cout << "generated " << perms.size() << " permutations.\n";
   }
-  write(perms); // add the results to the wordlist file
   if (vmode != 'q') {
     cout << "wrote " << perms.size() << " words to " << ofname << ".\n";
   }
   return 0;
 }
+
+int thrperm(vector<string> someT, int id) {
+  vector<string> perms;
+  // <find all two and three part permutations of the transforms (this works because one of the values in allT is always "")>
+  int ib = 0, jb = 0, kb = 0;
+  if (id == 1) {
+    for (int i = 0; i < someT.size()/3; i++) {
+      for (int j = 0; j < someT.size(); j++) {
+        for (int k = 0; k < someT.size(); k++) {
+            perms = ifnotadd(someT.at(i) + someT.at(j) + someT.at(k), perms);
+            perms = ifnotadd(someT.at(i) + someT.at(k) + someT.at(j), perms);
+        }
+      }
+      if (vmode == 'v') {
+        cout << "thread " << id << " : [" << ((i+1)*100)/(someT.size()/3) << "%]\n";
+      }
+      if (i == someT.size()/6 && id == 1) {
+        if (vmode == 'n') {
+          cout << "about halfway there...\n"; // so they know something's happening if it's slow
+        }
+      }
+    }
+  } else if (id == 2) {
+    for (int i = someT.size()/3; i < 2*someT.size()/3; i++) {
+      for (int j = 0; j < someT.size(); j++) {
+        for (int k = 0; k < someT.size(); k++) {
+            perms = ifnotadd(someT.at(i) + someT.at(j) + someT.at(k), perms);
+            perms = ifnotadd(someT.at(i) + someT.at(k) + someT.at(j), perms);
+         }
+       }
+      if (vmode == 'v') {
+        cout << "thread " << id << " : [" << ((i-(someT.size()/3)+1)*100)/(someT.size()/3) << "%]\n";
+      }
+     }
+   } else {
+    for (int i = 2*someT.size()/3; i < someT.size(); i++) {
+      for (int j = 0; j < someT.size(); j++) {
+        for (int k = 0; k < someT.size(); k++) {
+            perms = ifnotadd(someT.at(i) + someT.at(j) + someT.at(k), perms);
+            perms = ifnotadd(someT.at(i) + someT.at(k) + someT.at(j), perms);
+        }
+      }
+      if (vmode == 'v') {
+        cout << "thread " << id << " : [" << ((i-(2*someT.size()/3)+1)*100)/(someT.size()/3) << "%]\n";
+      }
+    }
+  }
+  write(perms);
+  // </permutations>
+}
+
 
 vector<string> ifnotadd(string str, vector<string> perms) {
   if (find(perms.begin(), perms.end(), str) == perms.end() && str.length() >= startlen && str.length() <= endlen) {

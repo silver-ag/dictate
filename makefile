@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -g -v
+CFLAGS = -g -v -std=c++11 -pthread
 
 # target name - basically in case it becomes main.cpp in the future,
 # to accomodate extra files being included

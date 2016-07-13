@@ -1,4 +1,4 @@
-#  dictate
+# dictate
 
 Dictate is a tool for generating wordlists for dictionary attacks based on information about a specific target individual - somewhat like CUPP.  
 - takes **words**, **names** and **dates** associated with the target  
@@ -21,5 +21,5 @@ note that the repetition of 'smith' doesn't matter because duplicates are remove
 
 ---
 ###### installation:
-Dictate uses only the c++ standard libraries, so there shouldn't be dependency issues.  
+Dictate uses only the c++ standard libraries with the C++11 standard.  
 Download the zip file or `git clone https://github.com/silver-ag/dictate.git dictate`. You can either run `make` and `sudo make install` in the source directory, or compile it yourself with your compiler of choice - it's only one file.
