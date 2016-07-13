@@ -11,5 +11,6 @@
 
 13/06/16 - version 1.3 :
   added multithreading for generating permutations, significant speed improvements ensue.
-  however, some repetitions get through as well.
+  however, some repetitions get through as well - since this is just a speed improvement, you may want to stick to 1.2 for now, as the tool you feed the wordlist to is probably taking longer over each 
+word.
   the -q flag now actually suppresses the banner.
