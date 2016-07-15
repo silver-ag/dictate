@@ -22,16 +22,17 @@
 using namespace std;
 
 // <initialise functions>
-int help(char* argv[]), go(vector<string> words, vector<string> dates, vector<string> names), write(vector<string> info), add(vector<string> info), permute(vector<string> allT), thrperm(vector<string> someT, int id);
+int help(char* argv[]), go(vector<string> words, vector<string> dates, vector<string> names), write(vector<string> info), add(vector<string> info), permute(vector<string> allT), thrperm(vector<string> someT, int id), notify(string str, int mode);
 vector<string> tovect(string str), ifnotadd(string str, vector<string> perms);
 string l33tize(string str);
 bool l33table (string str), endnos = false;
 // </initialise>
-char* ofname = "dictionary.txt", *file = "-"; // name of output file
+char* ofname = "dictionary.txt", *file = "-"; // name of output and input files
 ofstream fout; // output stream
 char vmode = 'n'; // verbosity mode. n = not set, v = verbose, q = quiet.
 bool l33t = false, tflag = false;
 int startlen = 5, endlen = 14;
+vector<string> permslist;
 
 int main(int argc, char* argv[]) {
   if (argc == 1) {
@@ -96,15 +97,18 @@ int main(int argc, char* argv[]) {
 
   if (strcmp(file,"-") != 0) {
     if (vmode == 'v') {
-      cout << "reading file " << file << "...\n";
+      notify("reading file ", 0);
+      cout << file << "...\n";
     }
     ifstream f(file);
-    if (f.bad()) {
-      cout << "ERROR: could not open file " << file << " for reading!"; // TODO: implement notify() and error() with [+] and [!] and colours
+    if (f.fail()) {
+      notify("could not open file ", 1);
+      printf("%c[5;31m", 27);
+      cout << file << " for reading!";
+      printf("%c[0m", 27);
     }
     string line;
     while(f >> line) {
-      cout << line << "\n";//test
       words.resize(words.size() + 1);
       words.at(words.size() - 1) = line;
     }
@@ -193,9 +197,9 @@ int go(vector<string> words, vector<string> dates, vector<string> names) {
   vector<string> wordsT, datesT, namesT, allT;
   // <apply transforms to words>
   if (vmode == 'n') {
-    cout << "generating wordlist...\n";
+    notify("generating wordlist...\n", 0);
   } else if (vmode == 'v') {
-    cout << "applying transforms to words...\n";
+    notify("applying transforms to words...\n", 0);
   }
   for (int i = 0; i < words.size(); i++) {  // no transform
     wordsT.resize(i+2);
@@ -221,7 +225,7 @@ int go(vector<string> words, vector<string> dates, vector<string> names) {
   // <apply transforms to dates>
   if (dates.size() > 0) {
     if (vmode == 'v') {
-      cout << "applying transforms to dates...\n";
+      notify("applying transforms to dates...\n", 0);
     }
     for (int i = 0; i < dates.size(); i++) {  // no transform
       datesT.resize(i+2);
@@ -254,7 +258,7 @@ int go(vector<string> words, vector<string> dates, vector<string> names) {
   // <apply transforms to names>
   if (names.size() > 0) {
     if (vmode == 'v') {
-      cout << "applying transforms to names...\n";
+      notify("applying transforms to names...\n", 0);
     }
     for (int i = 0; i < names.size(); i++) { // first name
       namesT.resize(i+2);
@@ -322,7 +326,7 @@ int go(vector<string> words, vector<string> dates, vector<string> names) {
   }
   //    <add varying levels of 13375P34k>
   if (vmode == 'v') {
-    cout << "adding letter substitutions (l33tmode = ";
+    notify("adding letter substitutions (l33tmode = ", 0);
     if (l33t) {
       cout << "1337";
     } else {
@@ -339,7 +343,7 @@ int go(vector<string> words, vector<string> dates, vector<string> names) {
   //    </add varying levels of l3375P34k>
   //    <remove duplicates>
   if (vmode == 'v') {
-    cout << "removing duplicates...\n";
+    notify("removing duplicates...\n", 0);
   }
   for (int i = 0; i < allT.size(); i++) {
     for (int j = 0; j < allT.size(); j++) {
@@ -363,13 +367,21 @@ int go(vector<string> words, vector<string> dates, vector<string> names) {
 int permute(vector<string> allT) {
   vector<string> perms;
   if (vmode != 'q') {
-    cout << "generating permutations";
+    notify("generating permutations", 0);
     if (vmode == 'v') {
       cout << " on " << allT.size() << " words";
     }
     cout << "...\n";
   }
   // <generate permutations in threads>
+  if ((allT.size() % 3) == 2) {
+    allT.resize(allT.size() + 1);
+    allT.at(allT.size() - 1) = '\x01';
+  }
+  if ((allT.size() % 3) == 1) {
+    allT.resize(allT.size() + 1);
+    allT.at(allT.size() - 1) = '\x01';
+  }
   thread thr1(thrperm, allT, 1);
   thread thr2(thrperm, allT, 2);
   thread thr3(thrperm, allT, 3);
@@ -379,27 +391,30 @@ int permute(vector<string> allT) {
   // <add numbers on the end>
   if (endnos) {
     if (vmode == 'v') {
-      cout << "adding numbers on the end...\n";
+      notify("adding numbers on the end...\n", 0);
     }
-    int unnummedperms = perms.size();
+    int unnummedperms = permslist.size();
     for (int i = 0; i < 102; i++) {
       for (int j = 0; j < unnummedperms; j++) {
-        perms.resize(perms.size() + 1);
+        permslist.resize(permslist.size() + 1);
         string isc = static_cast<ostringstream*>(&(ostringstream() << i))->str();
         if (i < 10) {
-          perms.at(perms.size() - 1) = perms.at(j) + "0" + isc;
+          permslist.at(permslist.size() - 1) = permslist.at(j) + "0" + isc;
         } else {
-          perms.at(perms.size() - 1) = perms.at(j) + isc;
+          permslist.at(permslist.size() - 1) = permslist.at(j) + isc;
         }
       }
     }
   }
   // </add numbers on the end>
   if (vmode == 'v') {
-    cout << "generated " << perms.size() << " permutations.\n";
+     notify("generated ", 0);
+     cout << permslist.size() << " permutations.\n";
   }
+  write(permslist);
   if (vmode != 'q') {
-    cout << "wrote " << perms.size() << " words to " << ofname << ".\n";
+    notify("wrote ", 0);
+    cout << permslist.size() + allT.size() << " words to " << ofname << ".\n";
   }
   return 0;
 }
@@ -413,7 +428,6 @@ int thrperm(vector<string> someT, int id) {
       for (int j = 0; j < someT.size(); j++) {
         for (int k = 0; k < someT.size(); k++) {
             perms = ifnotadd(someT.at(i) + someT.at(j) + someT.at(k), perms);
-            perms = ifnotadd(someT.at(i) + someT.at(k) + someT.at(j), perms);
         }
       }
       if (vmode == 'v') {
@@ -421,7 +435,7 @@ int thrperm(vector<string> someT, int id) {
       }
       if (i == someT.size()/6 && id == 1) {
         if (vmode == 'n') {
-          cout << "about halfway there...\n"; // so they know something's happening if it's slow
+          notify("about halfway there...\n", 0); // so they know something's happening if it's slow
         }
       }
     }
@@ -430,7 +444,6 @@ int thrperm(vector<string> someT, int id) {
       for (int j = 0; j < someT.size(); j++) {
         for (int k = 0; k < someT.size(); k++) {
             perms = ifnotadd(someT.at(i) + someT.at(j) + someT.at(k), perms);
-            perms = ifnotadd(someT.at(i) + someT.at(k) + someT.at(j), perms);
          }
        }
       if (vmode == 'v') {
@@ -442,7 +455,6 @@ int thrperm(vector<string> someT, int id) {
       for (int j = 0; j < someT.size(); j++) {
         for (int k = 0; k < someT.size(); k++) {
             perms = ifnotadd(someT.at(i) + someT.at(j) + someT.at(k), perms);
-            perms = ifnotadd(someT.at(i) + someT.at(k) + someT.at(j), perms);
         }
       }
       if (vmode == 'v') {
@@ -450,13 +462,16 @@ int thrperm(vector<string> someT, int id) {
       }
     }
   }
-  write(perms);
+  for (int i = 0; i < perms.size(); i++) {
+    permslist.resize(permslist.size() + 1);
+    permslist.at(permslist.size() - 1) = perms.at(i);
+  }
   // </permutations>
 }
 
 
 vector<string> ifnotadd(string str, vector<string> perms) {
-  if (find(perms.begin(), perms.end(), str) == perms.end() && str.length() >= startlen && str.length() <= endlen) {
+  if (find(perms.begin(), perms.end(), str) == perms.end() && find(str.begin(), str.end(), '\x01') == str.end() && str.length() >= startlen && str.length() <= endlen) {
     perms.resize(perms.size() + 1);
     perms.at(perms.size() - 1) = str;
   }
@@ -527,6 +542,20 @@ string l33tize(string str) {
     }
   }
   return str;
+}
+
+int notify(string str, int mode) {
+  if (mode == 0) {
+    printf("%c[32m",27);
+    cout << "[i] ";
+    printf("%c[0m",27);
+    cout << str;
+  } else if (mode == 1) {
+    printf("%c[5;31m",27);
+    cout << "[!] " << str;
+    printf("%c[0m",27);
+  }
+  return 0;
 }
 
 int write(vector<string> info) {
