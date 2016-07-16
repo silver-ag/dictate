@@ -1,15 +1,15 @@
-05/06/16 - version 1.0 :
+05/07/16 - version 1.0 :
   help, verbose, quiet, end numbers, 13375P34|<, output, words, names and dates features implemented to begin with.
 
-06/06/16 - version 1.1 :
+06/07/16 - version 1.1 :
   version and constrain features added.
   constrain feature allows speed improvements.
   bug fixed in dates that caused two-member lists to fail.
 
-11/06/16 - version 1.2 :
+11/07/16 - version 1.2 :
   -f file and -t transforms options added.
 
-13/06/16 - version 1.3 :
+13/07/16 - version 1.3 :
   added multithreading for generating permutations, significant speed improvements ensue.
   however, some repetitions get through as well - since this is just a speed improvement, you may want to stick to 1.2 for now, as the tool you feed the wordlist to is probably taking longer over each 
 word.
