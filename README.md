@@ -20,8 +20,8 @@ for john smith, an accountant:
 note that the repetition of 'smith' doesn't matter because duplicates are removed  
 
 modify the rockyou wordlist, usingg four threads and suppressing nonerror output:
-`./dictate -T 4 -o newrockyou.txt -t -f rockyou.txt -q`
 
+`./dictate -T 4 -o newrockyou.txt -t -f rockyou.txt -q`
 
 ---
 ###### installation:
