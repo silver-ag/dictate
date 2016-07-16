@@ -19,7 +19,7 @@ for john smith, an accountant:
 `dictate -o john.txt -e -n john_smith,jane_smith -w money,rich,win`  
 note that the repetition of 'smith' doesn't matter because duplicates are removed  
 
-modify the rockyou wordlist, usingg four threads and suppressing nonerror output:
+modify the rockyou wordlist, using four threads and suppressing nonerror output:
 
 `./dictate -T 4 -o newrockyou.txt -t -f rockyou.txt -q`
 
