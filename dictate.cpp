@@ -31,12 +31,12 @@ char* ofname = "dictionary.txt", *file = "-"; // name of output and input files
 ofstream fout; // output stream
 char vmode = 'n'; // verbosity mode. n = not set, v = verbose, q = quiet.
 bool l33t = false, tflag = false;
-int startlen = 5, endlen = 14;
+int startlen = 5, endlen = 14, totalThreads = 3;
 vector<string> permslist;
 
 int main(int argc, char* argv[]) {
   if (argc == 1) {
-    cout << "usage: " << argv[0] << " [-h] [-V] [-q | -v] [-l] [-t] [-c a,b] [-o filename] [f filename] [-d date1,date2] [-n name1,name2] [-w word1,word2]\n" << argv[0] << " -h for further information\n";
+    cout << "usage: " << argv[0] << " [-h] [-V] [-q | -v] [-l] [-t] [-T n] [-c a,b] [-o filename] [f filename] [-d date1,date2] [-n name1,name2] [-w word1,word2]\n" << argv[0] << " -h for further information\n";
     return -1;
   }
 
@@ -73,15 +73,19 @@ int main(int argc, char* argv[]) {
       exit(0);
     } else if (sargv.at(i) == "-c") {
       istringstream issa(tovect(sargv.at(++i)).at(0));
-      int a;
       issa >> startlen;
       istringstream issb(tovect(sargv.at(i)).at(1));
-      int b;
       issb >> endlen;
     } else if (sargv.at(i) == "-f") {
       file = strdup(sargv.at(++i).c_str());
     } else if (sargv.at(i) == "-t") {
       tflag = true;
+    } else if (sargv.at(i) == "-T") {
+      istringstream iss(tovect(sargv.at(++i)).at(0));
+      iss >> totalThreads;
+      if (totalThreads < 1) {
+        notify("cannot have that number of threads, defaulting to 3\n\n",1);
+      }
     }
   }
 
@@ -113,8 +117,13 @@ int main(int argc, char* argv[]) {
       words.at(words.size() - 1) = line;
     }
   }
-
   // </options>
+
+  if (words.size() == 0 && names.size() == 0 && dates.size() == 0) {
+    notify("no inputs given - stopping.\n", 1);
+    exit(1);
+  }
+
   fout.open(ofname); // now we know what the output filename will be, no point hanging around
 
   // <extra info>
@@ -165,7 +174,9 @@ int help(char* argv[]) {
   cout << "    -f : supply the path to a file containing a list of words to be treated like -w.\n";
   cout << "         they should be listed one word to a line. compatible with -w.\n";
   cout << "    -t : only do transforms, not permutations. this is primarily useful in combination with\n";
-  cout << "         -f to work with the contents of an existing wordlist\n\n";
+  cout << "         -f to work with the contents of an existing wordlist\n";
+  cout << "    -T : supply a number of threads to use for generating permutations. this can significantly\n";
+  cout << "         improve speed, but will indroduce some repetitions. the default is three.\n\n";
   cout << "examples:\n";
   cout << "    for john smith, an accountant:\n";
   cout << "        " << argv[0] << " -o john.txt -e -n john_smith,jane_smith -w money,rich,win\n";
@@ -376,18 +387,18 @@ int permute(vector<string> allT) {
   // <generate permutations in threads>
   if ((allT.size() % 3) == 2) {
     allT.resize(allT.size() + 1);
-    allT.at(allT.size() - 1) = '\x01';
   }
   if ((allT.size() % 3) == 1) {
     allT.resize(allT.size() + 1);
-    allT.at(allT.size() - 1) = '\x01';
   }
-  thread thr1(thrperm, allT, 1);
-  thread thr2(thrperm, allT, 2);
-  thread thr3(thrperm, allT, 3);
-  thr1.join();
-  thr2.join();
-  thr3.join();
+  thread allThreads[totalThreads];
+  for (int i = 0; i < totalThreads; i++) {
+    allThreads[i] = thread(thrperm,allT,i);
+  }
+  for (int i = 0; i < totalThreads; i++) {
+    allThreads[i].join();
+  }
+  // </generate permutations>
   // <add numbers on the end>
   if (endnos) {
     if (vmode == 'v') {
@@ -423,42 +434,18 @@ int thrperm(vector<string> someT, int id) {
   vector<string> perms;
   // <find all two and three part permutations of the transforms (this works because one of the values in allT is always "")>
   int ib = 0, jb = 0, kb = 0;
-  if (id == 1) {
-    for (int i = 0; i < someT.size()/3; i++) {
-      for (int j = 0; j < someT.size(); j++) {
-        for (int k = 0; k < someT.size(); k++) {
-            perms = ifnotadd(someT.at(i) + someT.at(j) + someT.at(k), perms);
-        }
-      }
-      if (vmode == 'v') {
-        cout << "thread " << id << " : [" << ((i+1)*100)/(someT.size()/3) << "%]\n";
-      }
-      if (i == someT.size()/6 && id == 1) {
-        if (vmode == 'n') {
-          notify("about halfway there...\n", 0); // so they know something's happening if it's slow
-        }
+  for (int i = id*(someT.size()/totalThreads); i < (id+1)*(someT.size()/totalThreads); i++) {
+    for (int j = 0; j < someT.size(); j++) {
+      for (int k = 0; k < someT.size(); k++) {
+          perms = ifnotadd(someT.at(i) + someT.at(j) + someT.at(k), perms);
       }
     }
-  } else if (id == 2) {
-    for (int i = someT.size()/3; i < 2*someT.size()/3; i++) {
-      for (int j = 0; j < someT.size(); j++) {
-        for (int k = 0; k < someT.size(); k++) {
-            perms = ifnotadd(someT.at(i) + someT.at(j) + someT.at(k), perms);
-         }
-       }
-      if (vmode == 'v') {
-        cout << "thread " << id << " : [" << ((i-(someT.size()/3)+1)*100)/(someT.size()/3) << "%]\n";
-      }
-     }
-   } else {
-    for (int i = 2*someT.size()/3; i < someT.size(); i++) {
-      for (int j = 0; j < someT.size(); j++) {
-        for (int k = 0; k < someT.size(); k++) {
-            perms = ifnotadd(someT.at(i) + someT.at(j) + someT.at(k), perms);
-        }
-      }
-      if (vmode == 'v') {
-        cout << "thread " << id << " : [" << ((i-(2*someT.size()/3)+1)*100)/(someT.size()/3) << "%]\n";
+    if (vmode == 'v') {
+      cout << "thread " << id << " : [" << (((i+1)*100)/(someT.size()/totalThreads))-(100*id) << "%]\n";
+    }
+    if (i == someT.size()/(totalThreads*2) && id == 1) {
+      if (vmode == 'n') {
+        notify("about halfway there...\n", 0); // so they know something's happening if it's slow
       }
     }
   }
@@ -471,7 +458,7 @@ int thrperm(vector<string> someT, int id) {
 
 
 vector<string> ifnotadd(string str, vector<string> perms) {
-  if (find(perms.begin(), perms.end(), str) == perms.end() && find(str.begin(), str.end(), '\x01') == str.end() && str.length() >= startlen && str.length() <= endlen) {
+  if (find(perms.begin(), perms.end(), str) == perms.end() && str.length() >= startlen && str.length() <= endlen) {
     perms.resize(perms.size() + 1);
     perms.at(perms.size() - 1) = str;
   }
