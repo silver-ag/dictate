@@ -2,7 +2,7 @@
 //                                                      //
 //  Dictate - a utility for generating password lists   //
 //            from information about a target person.   //
-//  No Rights Reserved                                  //
+//  (k) All Rights Reversed                             //
 //                                                      //
 //  https://xkcd.com/1513                               //
 //                                                      //
@@ -22,7 +22,7 @@
 using namespace std;
 
 // <initialise functions>
-int help(char* argv[]), go(vector<string> words, vector<string> dates, vector<string> names), write(vector<string> info), add(vector<string> info), permute(vector<string> allT), thrperm(vector<string> someT, int id), notify(string str, int mode);
+int help(char* argv[]), go(vector<string> words, vector<string> dates, vector<string> names), write(vector<string> info), add(vector<string> info), permute(vector<string> allT), thrperm(vector<string> someT, int id), notify(string str, int mode), compUpdate();
 vector<string> tovect(string str), ifnotadd(string str, vector<string> perms);
 string l33tize(string str);
 bool l33table (string str), endnos = false;
@@ -32,7 +32,9 @@ ofstream fout; // output stream
 char vmode = 'n'; // verbosity mode. n = not set, v = verbose, q = quiet.
 bool l33t = false, tflag = false;
 int startlen = 5, endlen = 14, totalThreads = 3;
+vector<int> threadcomp;
 vector<string> permslist;
+vector<vector<string>> permscollect;
 
 int main(int argc, char* argv[]) {
   if (argc == 1) {
@@ -85,6 +87,7 @@ int main(int argc, char* argv[]) {
       iss >> totalThreads;
       if (totalThreads < 1) {
         notify("cannot have that number of threads, defaulting to 3\n\n",1);
+        totalThreads = 3;
       }
     }
   }
@@ -125,20 +128,21 @@ int main(int argc, char* argv[]) {
   }
 
   fout.open(ofname); // now we know what the output filename will be, no point hanging around
+  permscollect.resize(totalThreads);
 
   // <extra info>
   if (vmode == 'v') {
     cout << "\nwords: ";
     for (int i = 0; i < words.size(); i++) {
-      cout << words.at(i) << " ";
+      cout << words.at(i) << ", ";
     }
     cout << "\ndates: ";
     for (int i = 0; i < dates.size(); i++) {
-      cout << dates.at(i) << " ";
+      cout << dates.at(i) << ", ";
     }
     cout << "\nnames: ";
     for (int i = 0; i < names.size(); i++) {
-      cout << names.at(i) << " ";
+      cout << names.at(i) << ", ";
     }
     cout << "\n\n";
   }
@@ -335,7 +339,7 @@ int go(vector<string> words, vector<string> dates, vector<string> names) {
     allT.resize(allT.size() + 1);
     allT.at(allT.size() - 1) = namesT.at(i);
   }
-  //    <add varying levels of 13375P34k>
+    //    <add varying levels of 13375P34k>
   if (vmode == 'v') {
     notify("adding letter substitutions (l33tmode = ", 0);
     if (l33t) {
@@ -382,7 +386,7 @@ int permute(vector<string> allT) {
     if (vmode == 'v') {
       cout << " on " << allT.size() << " words";
     }
-    cout << "...\n";
+    cout << " - this may take some time...\n";
   }
   // <generate permutations in threads>
   if ((allT.size() % 3) == 2) {
@@ -392,11 +396,19 @@ int permute(vector<string> allT) {
     allT.resize(allT.size() + 1);
   }
   thread allThreads[totalThreads];
+  threadcomp.resize(totalThreads);
   for (int i = 0; i < totalThreads; i++) {
+    cout << "thread " << i << " : [0%]\n";
     allThreads[i] = thread(thrperm,allT,i);
   }
   for (int i = 0; i < totalThreads; i++) {
     allThreads[i].join();
+  }
+  for (int i = 0; i < totalThreads; i++) {
+    for (int j = 0; j < permscollect.at(i).size(); j++) {
+      permslist.resize(permslist.size() + 1);
+      permslist.at(permslist.size() - 1) = permscollect.at(i).at(j);
+    }
   }
   // </generate permutations>
   // <add numbers on the end>
@@ -432,28 +444,28 @@ int permute(vector<string> allT) {
 
 int thrperm(vector<string> someT, int id) {
   vector<string> perms;
-  // <find all two and three part permutations of the transforms (this works because one of the values in allT is always "")>
+  // find all two and three part permutations of the transforms (this works because one of the values in allT is always "")
   int ib = 0, jb = 0, kb = 0;
   for (int i = id*(someT.size()/totalThreads); i < (id+1)*(someT.size()/totalThreads); i++) {
-    for (int j = 0; j < someT.size(); j++) {
-      for (int k = 0; k < someT.size(); k++) {
-          perms = ifnotadd(someT.at(i) + someT.at(j) + someT.at(k), perms);
-      }
-    }
     if (vmode == 'v') {
-      cout << "thread " << id << " : [" << (((i+1)*100)/(someT.size()/totalThreads))-(100*id) << "%]\n";
+      threadcomp.at(id) = (((i+1)*100)/(someT.size()/totalThreads))-(100*id);
+      compUpdate();
     }
     if (i == someT.size()/(totalThreads*2) && id == 1) {
       if (vmode == 'n') {
         notify("about halfway there...\n", 0); // so they know something's happening if it's slow
       }
     }
+    for (int j = 0; j < someT.size(); j++) {
+      for (int k = 0; k < someT.size(); k++) {
+          perms = ifnotadd(someT.at(i) + someT.at(j) + someT.at(k), perms);
+      }
+    }
   }
   for (int i = 0; i < perms.size(); i++) {
-    permslist.resize(permslist.size() + 1);
-    permslist.at(permslist.size() - 1) = perms.at(i);
+    permscollect.at(id).resize(permscollect.at(id).size() + 1);
+    permscollect.at(id).at(permscollect.at(id).size() - 1) = perms.at(i);
   }
-  // </permutations>
 }
 
 
@@ -463,6 +475,16 @@ vector<string> ifnotadd(string str, vector<string> perms) {
     perms.at(perms.size() - 1) = str;
   }
   return perms;
+}
+
+int compUpdate() {
+  for (int i = 0; i < totalThreads; i++) {
+    printf("%c[F",27);
+  }
+  for (int i = 0; i < totalThreads; i++) {
+    cout << "thread " << i << " : [" << threadcomp.at(i) << "%]\n";
+  }
+  return 0;
 }
 
 bool l33table(string str) {
@@ -540,6 +562,10 @@ int notify(string str, int mode) {
   } else if (mode == 1) {
     printf("%c[5;31m",27);
     cout << "[!] " << str;
+    printf("%c[0m",27);
+  } else if (mode == 2) {
+    printf("%c[33m",27);
+    cout << "[w] " << str;
     printf("%c[0m",27);
   }
   return 0;
