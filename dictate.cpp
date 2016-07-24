@@ -89,6 +89,11 @@ int main(int argc, char* argv[]) {
         notify("cannot have that number of threads, defaulting to 3\n\n",1);
         totalThreads = 3;
       }
+      if (totalThreads > 6) {
+        notify("that's a lot of threads.\n",2);
+        notify("having more threads won't help you much if you don't have enough cores.\n",2);
+        notify("further, there's an unfixed bug that causes less results to come out for high numbers of threads.\n",2);
+      }
     }
   }
 
@@ -398,7 +403,9 @@ int permute(vector<string> allT) {
   thread allThreads[totalThreads];
   threadcomp.resize(totalThreads);
   for (int i = 0; i < totalThreads; i++) {
-    cout << "thread " << i << " : [0%]\n";
+    if (vmode == 'v') {
+      cout << "thread " << i << " : [0%]\n";
+    }
     allThreads[i] = thread(thrperm,allT,i);
   }
   for (int i = 0; i < totalThreads; i++) {
@@ -447,6 +454,11 @@ int thrperm(vector<string> someT, int id) {
   // find all two and three part permutations of the transforms (this works because one of the values in allT is always "")
   int ib = 0, jb = 0, kb = 0;
   for (int i = id*(someT.size()/totalThreads); i < (id+1)*(someT.size()/totalThreads); i++) {
+    for (int j = 0; j < someT.size(); j++) {
+      for (int k = 0; k < someT.size(); k++) {
+          perms = ifnotadd(someT.at(i) + someT.at(j) + someT.at(k), perms);
+      }
+    }
     if (vmode == 'v') {
       threadcomp.at(id) = (((i+1)*100)/(someT.size()/totalThreads))-(100*id);
       compUpdate();
@@ -454,11 +466,6 @@ int thrperm(vector<string> someT, int id) {
     if (i == someT.size()/(totalThreads*2) && id == 1) {
       if (vmode == 'n') {
         notify("about halfway there...\n", 0); // so they know something's happening if it's slow
-      }
-    }
-    for (int j = 0; j < someT.size(); j++) {
-      for (int k = 0; k < someT.size(); k++) {
-          perms = ifnotadd(someT.at(i) + someT.at(j) + someT.at(k), perms);
       }
     }
   }
