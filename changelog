@@ -20,7 +20,12 @@ word.
 
 16/07/16 :
   -T threads option added to control the number of threads.
+
 23/07/16 :
   bugfix - error message for invalid thread no., but nothing actually done.
   implemented notify() warn mode, but not yet used for anything
   aesthetics
+
+24/07/16 :
+  fixed bugs I caused yesterday
+  added warning for using large numbers of threads
