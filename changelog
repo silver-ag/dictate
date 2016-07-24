@@ -28,3 +28,4 @@
 24/07/16 :
   fixed bugs I caused yesterday
   added warning for using large numbers of threads
+  large numbers of threads still screw up the output - the problem occurs when two threads call threadUpdate() simultaneously. which is obviously more likely with more threads.

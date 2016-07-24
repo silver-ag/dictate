@@ -89,11 +89,13 @@ int main(int argc, char* argv[]) {
         notify("cannot have that number of threads, defaulting to 3\n\n",1);
         totalThreads = 3;
       }
-      if (totalThreads > 6) {
-        notify("that's a lot of threads.\n",2);
-        notify("having more threads won't help you much if you don't have enough cores.\n",2);
-        notify("further, there's an unfixed bug that causes less results to come out for high numbers of threads.\n",2);
-      }
+    }
+  }
+
+  if (totalThreads > 6) { // put here so we know vmode
+    if (vmode != 'q') {
+      notify("that's a lot of threads.\n",2);
+      notify("having more threads won't help you if you don't have that many cores.\n",2);
     }
   }
 
@@ -139,15 +141,15 @@ int main(int argc, char* argv[]) {
   if (vmode == 'v') {
     cout << "\nwords: ";
     for (int i = 0; i < words.size(); i++) {
-      cout << words.at(i) << ", ";
+      cout << words.at(i) << " ";
     }
     cout << "\ndates: ";
     for (int i = 0; i < dates.size(); i++) {
-      cout << dates.at(i) << ", ";
+      cout << dates.at(i) << " ";
     }
     cout << "\nnames: ";
     for (int i = 0; i < names.size(); i++) {
-      cout << names.at(i) << ", ";
+      cout << names.at(i) << " ";
     }
     cout << "\n\n";
   }
@@ -394,6 +396,12 @@ int permute(vector<string> allT) {
     cout << " - this may take some time...\n";
   }
   // <generate permutations in threads>
+  if (allT.size() < totalThreads && vmode != 'q') {
+    notify("you have requested more threads than words generated. this won't work.\n",2);
+    notify("proceeding with ",2);
+    cout << "\033[33m" << allT.size() << " threads.\n" << "\033[0m";
+    totalThreads = allT.size();
+  }
   if ((allT.size() % 3) == 2) {
     allT.resize(allT.size() + 1);
   }
