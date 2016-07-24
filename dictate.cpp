@@ -18,6 +18,7 @@
 #include <locale>
 #include <vector>
 #include <thread>
+#include <mutex>
 
 using namespace std;
 
@@ -35,6 +36,7 @@ int startlen = 5, endlen = 14, totalThreads = 3;
 vector<int> threadcomp;
 vector<string> permslist;
 vector<vector<string>> permscollect;
+mutex updatemtx;
 
 int main(int argc, char* argv[]) {
   if (argc == 1) {
@@ -469,7 +471,9 @@ int thrperm(vector<string> someT, int id) {
     }
     if (vmode == 'v') {
       threadcomp.at(id) = (((i+1)*100)/(someT.size()/totalThreads))-(100*id);
+      updatemtx.lock();
       compUpdate();
+      updatemtx.unlock();
     }
     if (i == someT.size()/(totalThreads*2) && id == 1) {
       if (vmode == 'n') {
