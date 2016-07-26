@@ -8,7 +8,7 @@
 //                                                      //
 //////////////////////////////////////////////////////////
 
-#define VER "1.3"
+#define VER "1.4"
 
 #include <algorithm>
 #include <iostream>
@@ -17,6 +17,7 @@
 #include <fstream>
 #include <locale>
 #include <vector>
+#include <cctype>
 #include <thread>
 #include <mutex>
 
@@ -56,8 +57,26 @@ int main(int argc, char* argv[]) {
       help(argv);
     } else if (sargv.at(i) == "-d") {
       dates = tovect(sargv.at(++i));
+      for (int i = 0; i < dates.size(); i++) {
+        if (dates.at(i).size() != 8) {
+          notify("fatal error : invalid date\n",1);
+          exit(1);
+        }
+        for (int j = 0;  j < dates.at(i).size(); j++) {
+          if (!isdigit(dates.at(i).at(j))) {
+            notify("fatal error : invalid date\n",1);
+            exit(1);
+          }
+        }
+      }
     } else if (sargv.at(i) == "-n") {
       names = tovect(sargv.at(++i));
+      for (int i = 0; i < names.size(); i++) {
+        if (names.at(i).find("_") == 0 || names.at(i).find("_") >= names.at(i).size()-1) {  // doesn't start or end with '_', but does contain one (or more. TODO: fix this later.)
+          notify("fatal error : invalid name\n",1);
+          exit(1);
+        }
+      }
     } else if (sargv.at(i) == "-w") {
       words = tovect(sargv.at(++i));
     } else if (sargv.at(i) == "-o") {
@@ -76,17 +95,41 @@ int main(int argc, char* argv[]) {
       cout << "Dictate version " << VER << "\n";
       exit(0);
     } else if (sargv.at(i) == "-c") {
-      istringstream issa(tovect(sargv.at(++i)).at(0));
+      vector<string> convect = tovect(sargv.at(++i));
+      istringstream issa(convect.at(0));
       issa >> startlen;
-      istringstream issb(tovect(sargv.at(i)).at(1));
+      for (int i = 0; i < convect.at(0).size(); i++) {
+        if (!isdigit(convect.at(0).at(i))) {
+          notify("fatal error : invalid minimum length\n", 1);
+          exit(1);
+        }
+      }
+      istringstream issb(convect.at(1));
       issb >> endlen;
+      for (int i = 0; i < convect.at(1).size(); i++) {
+        if (!isdigit(convect.at(1).at(i))) {
+          notify("fatal error : invalid maximum length\n", 1);
+          exit(1);
+        }
+      }
     } else if (sargv.at(i) == "-f") {
       file = strdup(sargv.at(++i).c_str());
     } else if (sargv.at(i) == "-t") {
       tflag = true;
     } else if (sargv.at(i) == "-T") {
-      istringstream iss(tovect(sargv.at(++i)).at(0));
+      vector<string> tvect = tovect(sargv.at(++i));
+      istringstream iss(tvect.at(0));
       iss >> totalThreads;
+      if (tvect.size() != 1) {
+        notify("fatal error : invalid thread number\n",1);
+        exit(1);
+      }
+      for (int i = 0; i < tvect.at(0).size(); i++) {
+        if (!isdigit(tvect.at(0).at(i))) {
+          notify("fatal error : invalid thread number\n",1);
+          exit(1);
+        }
+      }
       if (totalThreads < 1) {
         notify("cannot have that number of threads, defaulting to 3\n\n",1);
         totalThreads = 3;
@@ -132,7 +175,7 @@ int main(int argc, char* argv[]) {
   // </options>
 
   if (words.size() == 0 && names.size() == 0 && dates.size() == 0) {
-    notify("no inputs given - stopping.\n", 1);
+    notify("fatal error : no inputs given\n", 1);
     exit(1);
   }
 

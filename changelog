@@ -29,3 +29,8 @@
   fixed bugs I caused yesterday
   added warning for using large numbers of threads
   large numbers of threads no longer screw up the output - thrperm() threads mutex.lock() before calling compUpdate().
+
+26/07/16 - version 1.4 :
+  added sanity checks on arguments
+  new version to denote that aesthetic changes + bugfixes now basically done for now - moving on to some bigger additions
+
