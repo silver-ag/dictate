@@ -213,7 +213,7 @@ int help(char* argv[]) {
   cout << "options:\n";
   cout << "    -h : you're already here!\n";
   cout << "    -V : output the program version\n";
-  cout << "    -q : quiet. suppress nonerror output. overrides -d\n";
+  cout << "    -q : quiet. suppress nonerror output. overrides -v\n";
   cout << "    -v : verbose. give more informative output\n";
   cout << "    -l : 13375P34|< mode. By default dictate adds versions of words with o and i swapped\n";
   cout << "         for 0 and 1. If you know your target suffers from a propensity to use more\n";
