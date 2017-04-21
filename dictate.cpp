@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
       notify("could not open file ", 1);
       printf("%c[5;31m", 27);
       cout << file << " for reading!";
-      printf("%c[0m", 27);
+      printf("%c[0m\n", 27);
     }
     string line;
     while(f >> line) {
