@@ -459,7 +459,8 @@ int permute(vector<string> allT) {
     if (vmode == 'v') {
       cout << "thread " << i << " : [0%]\n";
     }
-    allThreads[i] = thread(thrperm,allT,i);
+    vector<string> someT(&allT[i*((allT.size()/totalThreads))], &allT[(i+1)*((allT.size()/totalThreads))]);
+    allThreads[i] = thread(thrperm, someT, i);
   }
   for (int i = 0; i < totalThreads; i++) {
     allThreads[i].join();

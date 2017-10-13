@@ -34,3 +34,5 @@
   added sanity checks on arguments
   new version to denote that aesthetic changes + bugfixes now basically done for now - moving on to some bigger additions
 
+13/10/17:
+  (finally) made the threads actually helpful rather than all duplicating the same work. Before they were all doing the same thing, I don't know what I was thinking.
