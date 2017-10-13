@@ -232,7 +232,7 @@ int help(char* argv[]) {
   cout << "    -t : only do transforms, not permutations. this is primarily useful in combination with\n";
   cout << "         -f to work with the contents of an existing wordlist\n";
   cout << "    -T : supply a number of threads to use for generating permutations. this can significantly\n";
-  cout << "         improve speed, but will indroduce some repetitions. the default is three.\n\n";
+  cout << "         improve speed, up to a point. the default is three.\n\n";
   cout << "examples:\n";
   cout << "    for john smith, an accountant:\n";
   cout << "        " << argv[0] << " -o john.txt -e -n john_smith,jane_smith -w money,rich,win\n";
